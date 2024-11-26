@@ -75,6 +75,32 @@ app.MapGet("/weatherforecast", () =>
 .WithName("GetWeatherForecast")
 .WithOpenApi();
 
+
+
+
+app.MapGet("/user/{userId}", async (string userId, UserManager<IdentityUser> userManager) =>
+{
+    var user = await userManager.FindByIdAsync(userId);
+
+    if (user == null)
+    {
+        return Results.NotFound(new { Message = $"The user of id {userId} was not found." });
+    }
+
+    return Results.Ok(new
+    {
+        user.Id, //Keep? They would already have this
+        user.UserName,
+        user.Email,
+    });
+})
+.RequireAuthorization()
+.WithName("GetUser")
+.WithOpenApi();
+
+
+
+
 app.Run();
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
