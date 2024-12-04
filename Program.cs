@@ -2,9 +2,15 @@
 
 using IdentityManager.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Connection info stored in appsettings.json
+IConfiguration configuration = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json")
+    .Build();
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -39,6 +45,7 @@ builder.Services.AddSwaggerGen(opt =>
 });
 builder.Services.AddDbContext<ApplicationDbContext>();
 builder.Services.AddIdentityApiEndpoints<IdentityUser>().AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.AddDbContext<DataContext>(options => options.UseSqlite(configuration["ConnectionStrings:DefaultSQLiteConnection"]));
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
@@ -76,6 +83,20 @@ app.MapGet("/weatherforecast", () =>
 .WithOpenApi();
 
 
+app.MapGet("/localLocations/all", (DataContext context) => {
+	return context.LocalLocations.ToList();
+})
+// .RequireAuthorization()
+.WithName("GetAllLocations");
+
+app.MapPost("/localLocations/", async (DataContext context, [Microsoft.AspNetCore.Mvc.FromBody] LocalLocation localLocation) => {
+    context.Add(localLocation);
+    await context.SaveChangesAsync();
+    // await _hubContext.Clients.All.SendAsync("ReceiveAddMessage", country);
+	// return context.LocalLocations.ToList();
+})
+// .RequireAuthorization()
+.WithName("PostLocation");
 
 
 app.MapGet("/user/{userId}", async (string userId, UserManager<IdentityUser> userManager) =>
@@ -107,3 +128,4 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
 	public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+  
