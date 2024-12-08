@@ -119,6 +119,22 @@ app.MapPost("/localLocations/", async (DataContext context, [Microsoft.AspNetCor
 // .RequireAuthorization()
 .WithName("PostLocation");
 
+app.MapDelete("/localLocations/{id}", async (int localLocationId, DataContext context) => {
+	var localLocation = context.LocalLocations.Where(l => l.Id == localLocationId).FirstOrDefault();
+
+    if (localLocation == null)
+    {
+        return Results.NotFound(new { Message = $"The localLocation of id {localLocationId} was not found." });
+    }
+
+	context.Remove(localLocation);
+	await context.SaveChangesAsync();
+
+    return Results.Ok(localLocation);
+})
+// .RequireAuthorization()
+.WithName("DeleteLocation");
+
 
 app.MapGet("/user/{userId}", async (string userId, UserManager<IdentityUser> userManager) =>
 {

@@ -6,5 +6,7 @@ public class LocalLocation
     public string Description { get; set; } = "";
     public double Latitude { get; set; }
     public double Longitude { get; set; }
+    public DateTime DateStart { get; set; }
+    public DateTime DateEnd { get; set; }
     public DateTime CreatedOn { get; set; }
 }
