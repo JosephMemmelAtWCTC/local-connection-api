@@ -50,8 +50,29 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    try
+    {
+        // Apply migrations for ApplicationDbContext
+        var identityDbContext = services.GetRequiredService<ApplicationDbContext>();
+        identityDbContext.Database.Migrate();
+
+        // Apply migrations for DataContext
+        var customDbContext = services.GetRequiredService<DataContext>();
+        customDbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        // Log the error (use a logging framework in production apps)
+        Console.WriteLine($"An error occurred while applying migrations: {ex.Message}");
+    }
+}
+
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || true)
 {
 	app.UseSwagger();
 	app.UseSwaggerUI();
